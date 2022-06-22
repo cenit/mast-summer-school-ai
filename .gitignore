@@ -133,6 +133,9 @@ src/me.jpg
 src/labels.txt
 src/soundclassifier_with_metadata.tflite
 src/data/
+src/model/
+package-lock.json
+node_modules/
 
 # OS Generated #
 .DS_Store*

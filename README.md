@@ -22,3 +22,8 @@ Infine, è sufficiente visitare:
 ### Alternativa a Google
 
 In alternativa all'uso di Google Colab, è possibile scaricare la *repository* pubblica di GitHub grazie all'apposito pulsante ↗️ [Code](https://github.com/thezingaro/mast-summer-school-ai.git) e aprire il progetto con un editor di testo, ad esempio [Visual Studio Code](https://code.visualstudio.com/) di Microsoft (quello usato dal docente), disponibile per diverse piattaforme.
+
+## Link interessanti
+
+[TFjs models: speech commands](https://github.com/tensorflow/tfjs-models/tree/master/speech-commands)
+[TF: speech commands](https://www.tensorflow.org/tutorials/audio/simple_audio)

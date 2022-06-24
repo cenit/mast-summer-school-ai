@@ -40,11 +40,11 @@ function draw() {
   // Background noise is headphones
   let emoji = "🎧";
   // Pick an emoji based on label
-  if (label == "Train") {
+  if (label == "Battito di mani") {
     emoji = "🚂";
-  } else if (label == "Bell") {
+  } else if (label == "Fischio") {
     emoji = "🛎";
-  } else if (label == "Ukulele") {
+  } else if (label == "Rumore di sottofondo") {
     emoji = "🎸";
   }
 

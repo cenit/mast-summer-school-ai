@@ -24,6 +24,7 @@ trainset_name = [None] * num_classes
 trainset_name[0] = 'yes'
 trainset_name[1] = 'no'
 
+print(f'Tensorflow version: {tf. __version__}')
 
 # %%
 # Here we create a `load_audio` and `load_audio_files` function to load audio files from a specified path into a dataset.
@@ -97,6 +98,7 @@ def get_spectrogram(waveform):
 # We have broken down some of the ways to understand our audio data and different transformations we can use on our data. Now lets create the images we will use for classification.
 #
 # Below is a function to create the Spectrogram image for classification.
+
 def create_images(dataset, label_dir):
     # make directory
     test_directory = f'./data/test/{label_dir}/'
@@ -128,20 +130,23 @@ if not skip_creating_spectrograms:
 #
 # This method is doing a lot for us. Lets take a look at a few of the params:
 # - `labels='inferred'`: The labels are created based on folder directory names.
-# - `image_size=(256, 256)`: resizes the image
+# - `image_size=(img_width, img_height)`: resizes the image
 # - `validation_split=0.2, subset='validation'`: create validation dataset
 
 train_directory = './data/train/'
 test_directory = './data/test/'
+img_height = 232
+img_width = 43
+
 
 print('Preprocessing train dataset')
 train_ds = tf.keras.preprocessing.image_dataset_from_directory(
-    train_directory, labels='inferred', label_mode='int', image_size=(256, 256), seed=123,
+    train_directory, labels='inferred', color_mode="grayscale", label_mode='int', image_size=(img_width, img_height), seed=123,
     validation_split=0.2, subset='validation')
 
 print('Preprocessing test dataset')
 test_ds = tf.keras.preprocessing.image_dataset_from_directory(
-    test_directory, labels='inferred', label_mode='int', image_size=(256, 256),
+    test_directory, labels='inferred', color_mode="grayscale", label_mode='int', image_size=(img_width, img_height),
     validation_split=None, subset=None)
 
 class_names = train_ds.class_names
@@ -154,11 +159,12 @@ print(class_names)
 #
 # To construct the linear layers we use the [tf.keras.Sequential](https://www.tensorflow.org/api_docs/python/tf/keras/Sequential) and pass in a list with each layer. Read more about the layers [here](https://www.tensorflow.org/api_docs/python/tf/keras/layers).
 
-img_height = 256
-img_width = 256
+rescale = tf.keras.layers.Rescaling(scale=1.0/255, input_shape=(img_height, img_width, 3))
+train_ds = train_ds.map(lambda image, label: (rescale(image), label))
+test_ds = test_ds.map(lambda image, label: (rescale(image), label))
 
 model = tf.keras.Sequential([
-  tf.keras.layers.experimental.preprocessing.Rescaling(1./255, input_shape=(img_height, img_width, 3)),
+  #tf.keras.layers.Rescaling(1./255, input_shape=(img_height, img_width, 3)),
   tf.keras.layers.Conv2D(16, 3, padding='same', activation='relu'),
   tf.keras.layers.MaxPooling2D(),
   tf.keras.layers.Conv2D(32, 3, padding='same', activation='relu'),
@@ -169,6 +175,7 @@ model = tf.keras.Sequential([
   tf.keras.layers.Dense(128, activation='relu'),
   tf.keras.layers.Dense(num_classes)
 ])
+
 
 # %% [markdown]
 # - Set the `learning_rate`, loss function `loss_fn`, `optimizer` and `metrics`.

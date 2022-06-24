@@ -135,7 +135,6 @@ src/soundclassifier_with_metadata.tflite
 src/sample_data/
 src/data/
 src/model/
-src/tfjs/
 src/saved_model_pb/
 package-lock.json
 node_modules/

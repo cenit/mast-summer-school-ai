@@ -130,12 +130,15 @@ dmypy.json
 
 # Artifacts
 src/me.jpg
-src/labels.txt
+src/small.png
 src/soundclassifier_with_metadata.tflite
+src/sample_data/
 src/data/
 src/model/
 package-lock.json
 node_modules/
+*/labels.txt
+*/*.tflite
 
 # OS Generated #
 .DS_Store*
@@ -147,3 +150,4 @@ Thumbs.db
 # IDE generated #
 .vs/
 .vscode/
+.DS_Store

@@ -1,7 +1,5 @@
-# ## Load the dataset
-# Here we import the packages and create a `load_audio` and `load_audio_files` function to load audio files from a specified path into a dataset.
+#!/usr/bin/env python3
 
-# %%
 import os
 import matplotlib.pyplot as plt
 from pathlib import Path
@@ -9,8 +7,24 @@ import tensorflow as tf
 import tensorflow_io as tfio
 import IPython.display as ipd
 import numpy as np
+import pandas as pd
+from tensorflow.python.keras.models import Model
+from tensorflow.python.keras.layers import Dense
+from tensorflow.python.keras import backend as K
 
 # %%
+# Here we create the basic lists that will contain our dataset
+num_classes = 2
+skip_creating_spectrograms = True
+trainset = [None] * num_classes
+trainset_name = [None] * num_classes
+
+trainset_name[0] = 'yes'
+trainset_name[1] = 'no'
+
+
+# %%
+# Here we create a `load_audio` and `load_audio_files` function to load audio files from a specified path into a dataset.
 def load_audio(file_path):
     audio_binary = tf.io.read_file(file_path)
     audio, sample_rate = tf.audio.decode_wav(audio_binary)
@@ -18,7 +32,6 @@ def load_audio(file_path):
     return waveform, sample_rate
 
 def load_audio_files(path: str, label:str):
-
     dataset = []
     walker = sorted(str(p) for p in Path(path).glob(f'*.wav'))
 
@@ -31,49 +44,30 @@ def load_audio_files(path: str, label:str):
         # Load audio
         waveform, sample_rate = load_audio(file_path)
         dataset.append([waveform, sample_rate, label, speaker_id, utterance_number])
-
     return dataset
 
 # %%
 # - Call the `load_audio_files` function for each class we are going to use, then print the length of the dataset.
-
-# %%
-trainset_speechcommands_yes = load_audio_files('./data/yes', 'yes')
-trainset_speechcommands_no = load_audio_files('./data/no', 'no')
-
-print(f'Length of yes dataset: {len(trainset_speechcommands_yes)}')
-print(f'Length of no dataset: {len(trainset_speechcommands_no)}')
+for i in range(num_classes):
+    trainset[i] = load_audio_files(f'./data/{trainset_name[i]}', f'{i}')
+    print(f'Length of dataset {trainset_name[i]}: {len(trainset[i])}')
 
 # %%
 # - Now let's grab an example item from each dataset. We can see the waveform, sample_rate, label, and id.
+for i in range(num_classes):
+    print(f'Class {trainset_name[i]}:')
+    print(f'Waveform: {trainset[0][0]}')
+    print(f'Sample Rate: {trainset[0][1]}')
+    print(f'Label: {trainset[0][2]}')
+    print(f'ID: {trainset[0][3]}')
 
 # %%
-yes_waveform = trainset_speechcommands_yes[0][0]
-yes_sample_rate = trainset_speechcommands_yes[0][1]
-print(f'Yes Waveform: {yes_waveform}')
-print(f'Yes Sample Rate: {yes_sample_rate}')
-print(f'Yes Label: {trainset_speechcommands_yes[0][2]}')
-print(f'Yes ID: {trainset_speechcommands_yes[0][3]}')
-
-no_waveform = trainset_speechcommands_no[0][0]
-no_sample_rate = trainset_speechcommands_no[0][1]
-print(f'No Waveform: {no_waveform}')
-print(f'No Sample Rate: {no_sample_rate}')
-print(f'No Label: {trainset_speechcommands_no[0][2]}')
-print(f'No ID: {trainset_speechcommands_no[0][3]}')
-
-# %%
-# ## Transform and visualize
-# Our data is ready
-
 # ### Spectrogram
 #
 # Next we will look at the `Spectrogram`. What is a spectrogram anyway?! A spectrogram allows you to visualize the amplitude as a function of frequency and time in the form of an image, where the 'x' axis represents time, the 'y' axis represents frequency, and the color represents the amplitude. This image is what we will use for our computer vision classification on our audio files.
 #
 # Here we look at two different ways to create the spectrogram from the waveform. First we want to make our waveforms all equal lengths so we will pad them with zeros. Then we apply to transforms [tf.signal.stft](https://www.tensorflow.org/api_docs/python/tf/signal/stft) and [tfio.audio.spectrogram](https://www.tensorflow.org/io/api_docs/python/tfio/audio/spectrogram?hl=da).
-#
 
-# %%
 def get_spectrogram(waveform):
 
     frame_length = 255
@@ -95,21 +89,12 @@ def get_spectrogram(waveform):
     return spectrogram, spect
 
 
-spectrogram, spect = get_spectrogram(yes_waveform)
-
-print('Label:', 'yes')
-print('Waveform shape:', yes_waveform.shape)
-print('Spectrogram shape:', spectrogram.shape)
-print('Spect shape:', spect.shape)
-
 # %%
 # ## Save the spectrogram as an image
 #
 # We have broken down some of the ways to understand our audio data and different transformations we can use on our data. Now lets create the images we will use for classification.
 #
 # Below is a function to create the Spectrogram image for classification.
-
-# %%
 def create_images(dataset, label_dir):
     # make directory
     test_directory = f'./data/test/{label_dir}/'
@@ -129,32 +114,13 @@ def create_images(dataset, label_dir):
         else:
             plt.imsave(f'./data/train/{label_dir}/spec_img{i}.png', spectrogram.numpy(), cmap='gray')
 
-
-
-
-# %%
-create_images(trainset_speechcommands_yes, 'yes')
-create_images(trainset_speechcommands_no, 'no')
+if not skip_creating_spectrograms:
+    for i in range(num_classes):
+        print(f'Creating spectrogram for class {trainset_name[i]} (warning, it might take a long time!)')
+        create_images(trainset[i], trainset_name[i])
 
 # %% [markdown]
-# We now have our audio as spectrogram images and are ready to build the model!
-
-
-# %% [markdown]
-# Now that we have created the spectrogram images it's time to build the computer vision model. If you are following along with the learning path then you already created a computer vision model in the second module in this path.
-# Like always we first import the packages we need to build the model.
-
-# %%
-import numpy as np
-import matplotlib.pyplot as plt
-import pandas as pd
-import os
-import tensorflow as tf
-import tensorflow_io as tfio
-import IPython.display as ipd
-
-# %% [markdown]
-# ## Load Spectrogram images into a dataset for training
+# Now that we have created the spectrogram images it's time to build the computer vision model
 #
 # Here we provide the path to our image data and use [tf.keras.preprocessing.image_dataset_from_directory](https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/image_dataset_from_directory) to load the images into tensors.
 #
@@ -163,14 +129,15 @@ import IPython.display as ipd
 # - `image_size=(256, 256)`: resizes the image
 # - `validation_split=0.2, subset='validation'`: create validation dataset
 
-# %%
 train_directory = './data/train/'
 test_directory = './data/test/'
 
+print('Preprocessing train dataset')
 train_ds = tf.keras.preprocessing.image_dataset_from_directory(
     train_directory, labels='inferred', label_mode='int', image_size=(256, 256), seed=123,
     validation_split=0.2, subset='validation')
 
+print('Preprocessing test dataset')
 test_ds = tf.keras.preprocessing.image_dataset_from_directory(
     test_directory, labels='inferred', label_mode='int', image_size=(256, 256),
     validation_split=None, subset=None)
@@ -185,8 +152,6 @@ print(class_names)
 #
 # To construct the linear layers we use the [tf.keras.Sequential](https://www.tensorflow.org/api_docs/python/tf/keras/Sequential) and pass in a list with each layer. Read more about the layers [here](https://www.tensorflow.org/api_docs/python/tf/keras/layers).
 
-# %%
-num_classes = 2
 img_height = 256
 img_width = 256
 
@@ -206,26 +171,22 @@ model = tf.keras.Sequential([
 # %% [markdown]
 # - Set the `learning_rate`, loss function `loss_fn`, `optimizer` and `metrics`.
 
-# %%
 learning_rate = 0.125
-
 loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
 optimizer = tf.keras.optimizers.SGD(learning_rate)
 metrics = ['accuracy']
+print('Compiling model')
 model.compile(optimizer, loss_fn, metrics)
 
 # %% [markdown]
 # ## Train the model
-
-# %%
-# Set the epocks
+# Set the epochs
 epochs = 15
-print('\nFitting:')
-
+print('\nGetting ready to train. Warning, if you get an error about missing zlibwapi.dll, please download it from http: // www.winimage.com/zLibDll/zlib123dllx64.zip\n')
+print('\nFitting (warning, it might take a long time!)')
 # Train the model.
 history = model.fit(train_ds, epochs=epochs)
-
-# %%
+print('\nModel summary:')
 model.summary()
 
 # %% [markdown]
@@ -250,16 +211,11 @@ for batch_num, (X, Y) in enumerate(test_ds):
 print(f'Number correct: {correct} out of {batch_size}')
 print(f'Accuracy {correct / batch_size}')
 
-
-import numpy as np
-from tensorflow.python.keras.models import Model
-from tensorflow.python.keras.layers import Dense
-from tensorflow.python.keras import backend as K
-import tensorflow as tf
+print('\nExporting model in tflite format')
 
 model.save("saved_model_pb")
 input_model = "saved_model_pb"
-output_model = "./models/output.tflite"
+output_model = "output.tflite"
 
 #to tensorflow lite
 converter = tf.lite.TFLiteConverter.from_saved_model(input_model)

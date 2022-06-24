@@ -1,7 +1,7 @@
 <div>Teachable Machine Audio Model v0</div>
 <button type="button" onclick="init()">Start</button>
 <div id="label-container"></div>
-
+<!-- The following scripts are hosted remotely. They define some of the functions used later. -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js" type="text/javascript"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands"></script>
 <!-- <script language="javascript" type="text/javascript" src="node_modules/@tensorflow/tfjs/dist/tf.min.js"></script> -->
@@ -45,10 +45,17 @@
         // 1. A callback function that is invoked anytime a word is recognized.
         // 2. A configuration object with adjustable fields
         recognizer.listen(result => {
-            const scores = result.scores; // probability of prediction for each class
-            // render the probability scores per class
+            const scores = result.scores; // predictions for each class
+            // render the predictions per class
+            // TODO: make the array dynamic with classLabels.length
+            predictions = [scores[0], scores[1]]; 
+            
+            // render the probabilities per class
+            // Note: dataSync() method is required to download tensors
+            const probabilities = tf.softmax(predictions).dataSync(); 
             for (let i = 0; i < classLabels.length; i++) {
-                const classPrediction = classLabels[i] + ": " + result.scores[i].toFixed(2);
+                //const classPrediction = classLabels[i] + ": " + result.scores[i].toFixed(2);
+                const classPrediction = classLabels[i] + ": " + probabilities[i].toFixed(2); 
                 labelContainer.childNodes[i].innerHTML = classPrediction;
             }
         }, {

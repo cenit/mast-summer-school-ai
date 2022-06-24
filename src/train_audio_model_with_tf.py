@@ -11,6 +11,8 @@ import pandas as pd
 from tensorflow.python.keras.models import Model
 from tensorflow.python.keras.layers import Dense
 from tensorflow.python.keras import backend as K
+import tensorflowjs as tfjs
+import json
 
 # %%
 # Here we create the basic lists that will contain our dataset
@@ -182,7 +184,7 @@ model.compile(optimizer, loss_fn, metrics)
 # ## Train the model
 # Set the epochs
 epochs = 15
-print('\nGetting ready to train. Warning, if you get an error about missing zlibwapi.dll, please download it from http: // www.winimage.com/zLibDll/zlib123dllx64.zip\n')
+print('\nGetting ready to train. Warning, if you get an error about missing zlibwapi.dll, please download it from http://www.winimage.com/zLibDll/zlib123dllx64.zip\n')
 print('\nFitting (warning, it might take a long time!)')
 # Train the model.
 history = model.fit(train_ds, epochs=epochs)
@@ -211,14 +213,26 @@ for batch_num, (X, Y) in enumerate(test_ds):
 print(f'Number correct: {correct} out of {batch_size}')
 print(f'Accuracy {correct / batch_size}')
 
-print('\nExporting model in tflite format')
-
+print('\nExporting model')
 model.save("saved_model_pb")
-input_model = "saved_model_pb"
-output_model = "output.tflite"
 
-#to tensorflow lite
+print('\nExporting model in tflite format')
+input_model = "saved_model_pb"
+output_model_lite = "output.tflite"
+output_folder_tfjs = "tfjs"
 converter = tf.lite.TFLiteConverter.from_saved_model(input_model)
 tflite_quant_model = converter.convert()
-with open(output_model, 'wb') as o_:
+with open(output_model_lite, 'wb') as o_:
     o_.write(tflite_quant_model)
+
+print('\nExporting model in tensorflow.js format')
+tfjs.converters.save_keras_model(model, output_folder_tfjs)
+metadata = {
+    'tfjsSpeechCommandsVersion': '0.4.0',
+    'modelName': 'TMv2',
+    'timeStamp': '2022-06-22T08:44:50.198Z',
+    'wordLabels': [f'{trainset_name[0]}', f'{trainset_name[1]}']
+}
+metadata_json_path = os.path.join(output_folder_tfjs, 'metadata.json')
+json.dump(metadata, open(metadata_json_path, 'wt'))
+print('\nSaved model metadata at: %s' % metadata_json_path)

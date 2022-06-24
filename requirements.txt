@@ -5,6 +5,7 @@ sox
 tflite-support
 tflite-model-maker
 tensorflow
+tensorflowjs[wizard]
 tensorflow_io
 seaborn
 numpy

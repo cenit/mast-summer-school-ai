@@ -134,6 +134,9 @@ src/small.png
 src/soundclassifier_with_metadata.tflite
 src/sample_data/
 src/data/
+src/data_full/
+src/train/
+src/test/
 src/model/
 src/saved_model_pb/
 package-lock.json

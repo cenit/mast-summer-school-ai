@@ -289,7 +289,7 @@ metadata = {
     'tfjsSpeechCommandsVersion': '0.4.0',
     'modelName': 'TMv2',
     'timeStamp': '2022-06-22T08:44:50.198Z',
-    'wordLabels': [f'{labels[0]}', f'{labels[1]}']
+    'wordLabels': labels
 }
 metadata_json_path = os.path.join(output_folder_tfjs, 'metadata.json')
 json.dump(metadata, open(metadata_json_path, 'wt'))

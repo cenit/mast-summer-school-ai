@@ -48,7 +48,10 @@
             const scores = result.scores; // predictions for each class
             // render the predictions per class
             // TODO: make the array dynamic with classLabels.length
-            predictions = [scores[0], scores[1]]; 
+            var predictions = [];
+            for (let i = 0; i < classLabels.length; i++) {
+            predictions.push(scores[i]);
+            }
             
             // render the probabilities per class
             // Note: dataSync() method is required to download tensors
@@ -60,9 +63,9 @@
             }
         }, {
             includeSpectrogram: true, // in case listen should return result.spectrogram
-            probabilityThreshold: 0.75,
+            probabilityThreshold: 0.50,
             invokeCallbackOnNoiseAndUnknown: true,
-            overlapFactor: 0.50 // probably want between 0.5 and 0.75. More info in README
+            overlapFactor: 0.75 // probably want between 0.5 and 0.75. More info in README
         });
 
         // Stop the recognition in 5 seconds.
